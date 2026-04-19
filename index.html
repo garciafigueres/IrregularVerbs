@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Irregular Verbs Quiz</title>
+  <script src="verbs.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #eef2f7;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── Setup ── */
+    #setup {
+      background: white;
+      border-radius: 14px;
+      padding: 2rem;
+      width: 380px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 1.8rem;
+      font-size: 1.5rem;
+    }
+
+    .field-group { margin-bottom: 1.3rem; }
+
+    .field-group label {
+      display: block;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .range-row span { color: #888; font-size: 0.95rem; }
+
+    input[type=number] {
+      width: 75px;
+      padding: 0.5rem 0.6rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+
+    input[type=number]:focus { outline: none; border-color: #4a90e2; }
+
+    .diff-buttons { display: flex; gap: 0.6rem; }
+
+    .diff-btn {
+      flex: 1;
+      padding: 0.6rem;
+      border: 2px solid #ddd;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #666;
+      transition: all 0.2s;
+    }
+
+    .diff-btn:hover { border-color: #4a90e2; color: #4a90e2; }
+
+    .diff-btn.selected {
+      border-color: #4a90e2;
+      background: #4a90e2;
+      color: white;
+    }
+
+    .diff-hint {
+      font-size: 0.78rem;
+      color: #aaa;
+      margin-top: 0.4rem;
+    }
+
+    .start-btn {
+      width: 100%;
+      padding: 0.85rem;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.2s;
+    }
+
+    .start-btn:hover { background: #357abd; }
+
+    /* ── Game ── */
+    #game { width: 640px; max-width: 100%; }
+
+    .stats {
+      background: white;
+      border-radius: 12px;
+      padding: 0.9rem 1.5rem;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-around;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    }
+
+    .stat { text-align: center; }
+
+    .stat-val {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #2c3e50;
+    }
+
+    .stat-val.green { color: #27ae60; }
+    .stat-val.red   { color: #e74c3c; }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.1rem;
+    }
+
+    .verb-card {
+      background: white;
+      border-radius: 14px;
+      padding: 1.8rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .feedback {
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 700;
+      min-height: 1.5rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .feedback.ok   { color: #27ae60; }
+    .feedback.fail { color: #e74c3c; }
+
+    .verb-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .verb-col { text-align: center; }
+
+    .col-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-value {
+      font-size: 1.05rem;
+      color: #2c3e50;
+      padding: 0.45rem 0.3rem;
+      font-weight: 500;
+    }
+
+    .col-input {
+      width: 100%;
+      padding: 0.45rem 0.3rem;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      text-align: center;
+      transition: border-color 0.2s;
+      background: #fafafa;
+    }
+
+    .col-input:focus { outline: none; border-color: #4a90e2; background: white; }
+    .col-input.ok    { border-color: #27ae60; background: #f0fff4; color: #1e8449; }
+    .col-input.fail  { border-color: #e74c3c; background: #fff5f5; color: #c0392b; }
+
+    .answer-hint {
+      font-size: 0.78rem;
+      color: #e74c3c;
+      margin-top: 0.35rem;
+      min-height: 1rem;
+    }
+
+    .btn-row {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .check-btn, .next-btn, .restart-btn {
+      padding: 0.75rem 2.2rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .check-btn { background: #4a90e2; color: white; }
+    .check-btn:hover { background: #357abd; }
+
+    .next-btn { background: #27ae60; color: white; }
+    .next-btn:hover { background: #1e8449; }
+
+    /* ── Results ── */
+    #results {
+      background: white;
+      border-radius: 14px;
+      padding: 2.5rem 2rem;
+      width: min(680px, 100%);
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    #results h1 { margin-bottom: 0.5rem; }
+
+    .big-score {
+      font-size: 4rem;
+      font-weight: 700;
+      margin: 0.8rem 0 0.4rem;
+    }
+
+    .score-detail { color: #888; margin-bottom: 1.5rem; }
+
+    .failed-section { text-align: left; margin-top: 1.5rem; }
+    .failed-section h2 { font-size: 1rem; color: #e74c3c; margin-bottom: 0.7rem; }
+    .failed-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .failed-table th {
+      background: #f5f5f5;
+      color: #888;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      padding: 0.4rem 0.5rem;
+      border-bottom: 2px solid #eee;
+      text-align: left;
+    }
+    .failed-table td {
+      padding: 0.45rem 0.5rem;
+      border-bottom: 1px solid #f0f0f0;
+      color: #2c3e50;
+    }
+    .failed-table tr:last-child td { border-bottom: none; }
+
+    .restart-btn { background: #4a90e2; color: white; width: 100%; }
+    .restart-btn:hover { background: #357abd; }
+
+    /* responsive */
+    @media (max-width: 660px) {
+      #game { width: 100%; }
+      .col-label { font-size: 0.62rem; }
+      .col-value, .col-input { font-size: 0.85rem; }
+      .verb-grid { gap: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Setup Screen ── -->
+<div id="setup" class="screen active">
+  <h1>Irregular Verbs</h1>
+
+  <div class="field-group">
+    <label>Verb range</label>
+    <div class="range-row">
+      <span>From</span>
+      <input type="number" id="from" value="1" min="1">
+      <span>to</span>
+      <input type="number" id="to" value="15" min="1">
+    </div>
+  </div>
+
+  <div class="field-group">
+    <label>Difficulty</label>
+    <div class="diff-buttons">
+      <button class="diff-btn" data-diff="easy">Easy</button>
+      <button class="diff-btn selected" data-diff="normal">Normal</button>
+      <button class="diff-btn" data-diff="hard">Hard</button>
+    </div>
+    <div class="diff-hint" id="diff-hint">Fill in 2 of the 4 columns.</div>
+  </div>
+
+  <div class="field-group">
+    <label>Auto-advance after check</label>
+    <div class="range-row">
+      <input type="number" id="auto-delay" value="3" min="0" max="60" style="width:60px">
+      <span>seconds &nbsp;(0 = off)</span>
+    </div>
+  </div>
+
+  <button class="start-btn" onclick="startGame()">Start</button>
+</div>
+
+<!-- ── Game Screen ── -->
+<div id="game" class="screen">
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val" id="stat-progress">–</div>
+      <div class="stat-label">Verb</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val green" id="stat-correct">0</div>
+      <div class="stat-label">Correct</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val red" id="stat-wrong">0</div>
+      <div class="stat-label">Wrong</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="stat-pct">—</div>
+      <div class="stat-label">Score</div>
+    </div>
+  </div>
+
+  <div class="verb-card">
+    <div class="feedback" id="feedback"></div>
+    <div class="verb-grid" id="verb-grid"></div>
+    <div class="btn-row">
+      <button class="check-btn" id="check-btn" onclick="checkAnswers()">Check</button>
+      <button class="next-btn" id="next-btn" onclick="nextVerb()" style="display:none">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Results Screen ── -->
+<div id="results" class="screen">
+  <h1>Finished!</h1>
+  <div class="big-score" id="final-score"></div>
+  <div class="score-detail" id="final-detail"></div>
+  <div class="failed-section" id="failed-section"></div>
+  <button class="restart-btn" onclick="goSetup()" style="margin-top:1.5rem">Play Again</button>
+</div>
+
+<script>
+  const LABELS = ['Infinitive', 'Past Simple', 'Past Participle', 'Meaning'];
+  const KEYS   = ['infinitive', 'pastSimple', 'pastParticiple', 'meaning'];
+  const HIDDEN_COUNT = { easy: 1, normal: 2, hard: 3 };
+  const DIFF_HINTS   = {
+    easy:   'Fill in 1 of the 4 columns.',
+    normal: 'Fill in 2 of the 4 columns.',
+    hard:   'Fill in 3 of the 4 columns.'
+  };
+
+  let allVerbs = [], gameVerbs = [];
+  let currentIdx = 0, correct = 0, wrong = 0;
+  let difficulty = 'normal';
+  let hiddenIndices = [], checked = false;
+  let autoDelay = 3, countdown = null;
+  let failedVerbs = [];
+
+  /* ── Parse verbs from verbs.js ── */
+  allVerbs = VERBS_RAW.trim().split('\n')
+    .filter(l => l.trim())
+    .map(line => {
+      const p = line.split(',').map(s => s.trim());
+      return {
+        num: parseInt(p[0]),
+        infinitive: p[1],
+        pastSimple: p[2],
+        pastParticiple: p[3],
+        meaning: p[4]
+      };
+    });
+  document.getElementById('to').value = 15;
+
+  /* ── Difficulty buttons ── */
+  document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      difficulty = btn.dataset.diff;
+      document.getElementById('diff-hint').textContent = DIFF_HINTS[difficulty];
+    });
+  });
+
+  /* ── Helpers ── */
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function isCorrect(userVal, correctVal) {
+    const norm = s => s.trim().toLowerCase();
+    const correctParts = correctVal.split('/').map(norm).sort();
+
+    function matchesParts(parts) {
+      const sorted = parts.map(norm).filter(Boolean).sort();
+      if (sorted.length === correctParts.length &&
+          sorted.every((p, i) => p === correctParts[i])) return true;
+      if (sorted.length === 1) return correctParts.includes(sorted[0]);
+      return false;
+    }
+
+    // Try slash/comma as separator
+    if (matchesParts(userVal.split(/[/,]/))) return true;
+
+    // If all correct alternatives are single words, also accept space as separator
+    if (correctParts.every(p => !p.includes(' '))) {
+      if (matchesParts(userVal.split(/\s+/))) return true;
+    }
+
+    return false;
+  }
+
+  /* ── Game flow ── */
+  function startGame() {
+    const from = parseInt(document.getElementById('from').value);
+    const to   = parseInt(document.getElementById('to').value);
+
+    if (isNaN(from) || isNaN(to) || from > to || from < 1) {
+      alert('Please enter a valid verb range.');
+      return;
+    }
+
+    gameVerbs = shuffle(allVerbs.filter(v => v.num >= from && v.num <= to));
+
+    if (gameVerbs.length === 0) {
+      alert('No verbs found in that range. Check your verbs.txt file.');
+      return;
+    }
+
+    autoDelay = Math.max(0, parseInt(document.getElementById('auto-delay').value) || 0);
+    currentIdx = 0; correct = 0; wrong = 0; failedVerbs = [];
+    show('game');
+    showVerb();
+  }
+
+  function showVerb() {
+    checked = false;
+    const count = HIDDEN_COUNT[difficulty];
+    hiddenIndices = shuffle([0, 1, 2, 3]).slice(0, count);
+
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('feedback').className = 'feedback';
+    document.getElementById('check-btn').style.display = '';
+    document.getElementById('next-btn').style.display = 'none';
+
+    updateStats();
+    renderGrid(gameVerbs[currentIdx]);
+
+    const firstInput = document.querySelector('.col-input');
+    if (firstInput) firstInput.focus();
+  }
+
+  function renderGrid(verb) {
+    const grid = document.getElementById('verb-grid');
+    grid.innerHTML = '';
+
+    LABELS.forEach((label, i) => {
+      const col = document.createElement('div');
+      col.className = 'verb-col';
+
+      const lbl = document.createElement('div');
+      lbl.className = 'col-label';
+      lbl.textContent = label;
+      col.appendChild(lbl);
+
+      if (hiddenIndices.includes(i)) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'col-input';
+        input.dataset.col = i;
+        input.autocomplete = 'off';
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.stopPropagation(); checkAnswers(); } });
+        col.appendChild(input);
+
+        const hint = document.createElement('div');
+        hint.className = 'answer-hint';
+        hint.id = `hint-${i}`;
+        col.appendChild(hint);
+      } else {
+        const val = document.createElement('div');
+        val.className = 'col-value';
+        val.textContent = verb[KEYS[i]];
+        col.appendChild(val);
+      }
+
+      grid.appendChild(col);
+    });
+  }
+
+  function checkAnswers() {
+    if (checked) return;
+    checked = true;
+
+    const verb = gameVerbs[currentIdx];
+    let allOk = true;
+
+    hiddenIndices.forEach(i => {
+      const input = document.querySelector(`.col-input[data-col="${i}"]`);
+      const ok = isCorrect(input.value, verb[KEYS[i]]);
+      input.classList.add(ok ? 'ok' : 'fail');
+      input.disabled = true;
+      if (!ok) {
+        document.getElementById(`hint-${i}`).textContent = '✓ ' + verb[KEYS[i]];
+        allOk = false;
+      }
+    });
+
+    if (allOk) { correct++; } else { wrong++; failedVerbs.push(gameVerbs[currentIdx]); }
+
+    const fb = document.getElementById('feedback');
+    fb.textContent = allOk ? '✓ Correct!' : '✗ Wrong!';
+    fb.className = 'feedback ' + (allOk ? 'ok' : 'fail');
+
+    updateStats();
+    document.getElementById('check-btn').style.display = 'none';
+
+    const nextBtn = document.getElementById('next-btn');
+    const isLast = currentIdx === gameVerbs.length - 1;
+
+    if (autoDelay > 0 && !isLast) {
+      let remaining = autoDelay;
+      nextBtn.textContent = `Next → (${remaining})`;
+      nextBtn.style.display = '';
+      countdown = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+          clearInterval(countdown);
+          countdown = null;
+          nextVerb();
+        } else {
+          nextBtn.textContent = `Next → (${remaining})`;
+        }
+      }, 1000);
+    } else {
+      nextBtn.textContent = 'Next →';
+      nextBtn.style.display = '';
+    }
+  }
+
+  function nextVerb() {
+    if (countdown) { clearInterval(countdown); countdown = null; }
+    document.getElementById('next-btn').textContent = 'Next →';
+    currentIdx++;
+    if (currentIdx >= gameVerbs.length) {
+      showResults();
+    } else {
+      showVerb();
+    }
+  }
+
+  function showResults() {
+    show('results');
+    const total = correct + wrong;
+    const pct = total > 0 ? Math.round(correct / total * 100) : 0;
+    const scoreEl = document.getElementById('final-score');
+    scoreEl.textContent = pct + '%';
+    scoreEl.style.color = pct >= 70 ? '#27ae60' : pct >= 40 ? '#e67e22' : '#e74c3c';
+    document.getElementById('final-detail').textContent =
+      `${correct} correct, ${wrong} wrong out of ${total} verbs`;
+
+    const section = document.getElementById('failed-section');
+    if (failedVerbs.length === 0) {
+      section.innerHTML = '<p style="color:#27ae60;font-weight:600;text-align:center">Perfect score! No mistakes.</p>';
+    } else {
+      section.innerHTML = `
+        <h2>Verbs to review (${failedVerbs.length})</h2>
+        <table class="failed-table">
+          <thead><tr>
+            <th>#</th><th>Infinitive</th><th>Past Simple</th><th>Past Participle</th><th>Meaning</th>
+          </tr></thead>
+          <tbody>${failedVerbs.map(v => `<tr>
+            <td>${v.num}</td>
+            <td>${v.infinitive}</td>
+            <td>${v.pastSimple}</td>
+            <td>${v.pastParticiple}</td>
+            <td>${v.meaning}</td>
+          </tr>`).join('')}</tbody>
+        </table>`;
+    }
+  }
+
+  function updateStats() {
+    document.getElementById('stat-progress').textContent =
+      `${currentIdx + 1} / ${gameVerbs.length}`;
+    document.getElementById('stat-correct').textContent = correct;
+    document.getElementById('stat-wrong').textContent = wrong;
+    const total = correct + wrong;
+    document.getElementById('stat-pct').textContent =
+      total > 0 ? Math.round(correct / total * 100) + '%' : '—';
+  }
+
+  function goSetup() { show('setup'); }
+
+  /* ── Enter key: Next when already checked ── */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && checked) nextVerb();
+  });
+</script>
+</body>
+</html>
