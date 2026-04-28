@@ -284,9 +284,14 @@
       color: #2c3e50;
     }
     .failed-table tr:last-child td { border-bottom: none; }
-    .your-input { color: #e74c3c; }
-    .your-input-field { display: block; font-size: 0.82rem; }
-    .your-input-field em { font-style: normal; font-weight: 600; }
+    .cell-wrong { background: #fff8f8; }
+    .user-wrong-input {
+      display: block;
+      color: #e74c3c;
+      font-size: 0.78rem;
+      font-style: italic;
+      margin-top: 0.15rem;
+    }
 
     .restart-btn { background: #4a90e2; color: white; width: 100%; }
     .restart-btn:hover { background: #357abd; }
@@ -352,10 +357,48 @@
       .big-score { font-size: 3rem; }
       .score-detail { font-size: 0.88rem; }
 
-      /* Scrollable table on small screens */
-      .failed-section { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .failed-table { font-size: 0.78rem; min-width: 480px; }
-      .failed-table th, .failed-table td { padding: 0.35rem 0.4rem; }
+      /* Results: card layout for portrait */
+      #results { padding: 1.4rem 1rem; }
+      .failed-section { overflow-x: visible; }
+      .failed-table, .failed-table tbody { display: block; width: 100%; min-width: 0; }
+      .failed-table thead { display: none; }
+      .failed-table tr {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem 0.8rem;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        padding: 0.8rem;
+        margin-bottom: 0.6rem;
+        background: white;
+      }
+      .failed-table td[data-label="#"] {
+        grid-column: 1 / -1;
+        font-size: 0.7rem;
+        color: #aaa;
+        font-weight: 700;
+        padding: 0 0 0.3rem;
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+      }
+      .failed-table td {
+        display: block;
+        padding: 0;
+        border: none;
+        color: #2c3e50;
+      }
+      .failed-table td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: #aaa;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.1rem;
+      }
+      .failed-table td[data-label="#"]::before { display: none; }
+      .cell-wrong { background: transparent; }
     }
   </style>
 </head>
@@ -680,16 +723,18 @@
         <h2>Verbs to review (${failedVerbs.length})</h2>
         <table class="failed-table">
           <thead><tr>
-            <th>#</th><th>Infinitive</th><th>Past Simple</th><th>Past Participle</th><th>Meaning</th><th>Your Input</th>
+            <th>#</th><th>Infinitive</th><th>Past Simple</th><th>Past Participle</th><th>Meaning</th>
           </tr></thead>
-          <tbody>${failedVerbs.map(({ verb: v, wrongAnswers }) => `<tr>
-            <td>${v.num}</td>
-            <td>${v.infinitive}</td>
-            <td>${v.pastSimple}</td>
-            <td>${v.pastParticiple}</td>
-            <td>${v.meaning}</td>
-            <td class="your-input">${wrongAnswers.map(w => `<span class="your-input-field">${w.label}: <em>${w.userVal || '–'}</em></span>`).join('')}</td>
-          </tr>`).join('')}</tbody>
+          <tbody>${failedVerbs.map(({ verb: v, wrongAnswers }) => {
+            const wrongMap = {};
+            wrongAnswers.forEach(w => { wrongMap[w.label] = w.userVal; });
+            const cells = LABELS.map((label, i) => {
+              const userVal = wrongMap[label];
+              const wrong = userVal !== undefined;
+              return `<td data-label="${label}"${wrong ? ' class="cell-wrong"' : ''}>${v[KEYS[i]]}${wrong ? `<span class="user-wrong-input">${userVal || '–'}</span>` : ''}</td>`;
+            }).join('');
+            return `<tr><td data-label="#">${v.num}</td>${cells}</tr>`;
+          }).join('')}</tbody>
         </table>`;
     }
   }
