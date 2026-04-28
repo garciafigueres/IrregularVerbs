@@ -1,0 +1,5 @@
+#!/bin/sh
+# Auto-update "Last updated" date in index.html on every commit
+DATE=$(date "+%-d %B %Y")
+sed -i '' "s/Last updated: .*/Last updated: $DATE/" index.html
+git add index.html
