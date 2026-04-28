@@ -517,6 +517,19 @@
     });
   document.getElementById('to').value = 15;
 
+  /* ── Restore last config ── */
+  const saved = JSON.parse(localStorage.getItem('irrverbs_config') || '{}');
+  if (saved.from) document.getElementById('from').value = saved.from;
+  if (saved.to)   document.getElementById('to').value   = saved.to;
+  if (saved.autoDelay !== undefined) document.getElementById('auto-delay').value = saved.autoDelay;
+  if (saved.difficulty) {
+    difficulty = saved.difficulty;
+    document.querySelectorAll('.diff-btn').forEach(b => {
+      b.classList.toggle('selected', b.dataset.diff === difficulty);
+    });
+    document.getElementById('diff-hint').textContent = DIFF_HINTS[difficulty];
+  }
+
   /* ── Difficulty buttons ── */
   document.querySelectorAll('.diff-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -583,6 +596,7 @@
     }
 
     autoDelay = Math.max(0, parseInt(document.getElementById('auto-delay').value) || 0);
+    localStorage.setItem('irrverbs_config', JSON.stringify({ from, to, difficulty, autoDelay }));
     currentIdx = 0; correct = 0; wrong = 0; failedVerbs = [];
     show('game');
     showVerb();
