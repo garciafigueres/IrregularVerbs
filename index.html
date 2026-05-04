@@ -441,7 +441,7 @@
   <p class="author-note">
     Made by Luis Garcia Figueres &mdash;
     <a href="mailto:garciafigueres@gmail.com">garciafigueres@gmail.com</a><br>
-    Last updated: 28 April 2026
+    Last updated: 4 May 2026
   </p>
 </div>
 
@@ -557,7 +557,7 @@
 
   function isCorrect(userVal, correctVal) {
     const norm = s => s.trim().toLowerCase();
-    const correctParts = correctVal.split('/').map(norm).sort();
+    const correctParts = correctVal.replace(/[()]/g, '/').split('/').map(norm).filter(Boolean).sort();
 
     function matchesParts(parts) {
       const sorted = parts.map(norm).filter(Boolean).sort();
